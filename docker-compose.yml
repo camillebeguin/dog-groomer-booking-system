@@ -1,0 +1,59 @@
+version: '3.9'
+
+services:
+  booking-api:
+    container_name: booking-api
+    depends_on:
+      - booking-db
+    restart: always
+    image: booking-api:local
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    networks:
+      - technical-backend
+    ports:
+      - "888:80"
+    env_file:
+      - app.env
+      - .env
+    environment:
+      PYTHONPATH: /wl
+    working_dir: /wl
+    volumes:
+      - ./app:/wl/app
+    command:
+      [
+        "uvicorn",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "80",
+        "--reload-dir",
+        "/wl/app",
+        "--log-level",
+        "debug",
+        "--reload",
+        "app.main:app"
+      ]
+
+  booking-db:
+    container_name: booking-db
+    image: postgres:12.4
+    volumes:
+      - technical-db-data:/var/lib/postgresql/data/
+      - ./scripts:/scripts/
+    env_file:
+      - ./app.env
+    networks:
+      - technical-backend
+    ports:
+      - "5435:5432"
+
+volumes:
+  technical-db-data:
+
+
+networks:
+  technical-backend:
+    name: technical-backend
